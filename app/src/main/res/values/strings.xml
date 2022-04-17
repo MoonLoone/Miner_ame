@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Miner Game</string>
+    <string name="exit_main">Выйти в меню</string>
+    <string name="new_game">Новая игра</string>
+</resources>
