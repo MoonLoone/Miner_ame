@@ -12,7 +12,7 @@
         <activity android:name=".SnakeGame.SnakeActivity"></activity>
         <activity android:name=".WinActivity" />
         <activity android:name=".GameOverActivity" />
-        <activity android:name=".ArcanoidActivity" />
+        <activity android:name=".Arcanoid.ArcanoidActivity" />
         <activity android:name=".miner.minerUsage.MinerActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

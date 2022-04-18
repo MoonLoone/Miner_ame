@@ -5,10 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
+import com.example.minergame.Arcanoid.ArcanoidActivity;
 import com.example.minergame.SnakeGame.SnakeActivity;
-import com.example.minergame.SnakeGame.SnakePlate;
 import com.example.minergame.miner.minerUsage.MinerActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickArcanoid(View view) {
-        Intent arcanoidIntent = new Intent(this,ArcanoidActivity.class);
+        Intent arcanoidIntent = new Intent(this, ArcanoidActivity.class);
         startActivity(arcanoidIntent);
     }
 
