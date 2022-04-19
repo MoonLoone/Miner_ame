@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +28,7 @@ public class SnakeActivity extends AppCompatActivity {
 
     private static final int backSize =13;
     private static final int onePlateSize = 80;
+    private boolean isGameRemains = true;
     private SnakePlate[][] plates = new SnakePlate[backSize][backSize];
     private Canvas canvas;
     private ImageView imageViewBackground;
@@ -45,6 +47,8 @@ public class SnakeActivity extends AppCompatActivity {
     private int score;
     private TextView textViewScore;
     private String textScore;
+    private Bitmap snakeHeadBitmap;
+    private Bitmap[] headStateBitmaps = new Bitmap[4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +56,6 @@ public class SnakeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_snake);
         score = 0;
         textViewScore = findViewById(R.id.textViewScore);
-        textScore = "Your score "+score;
-        textViewScore.setText(textScore);
         imageButtons[0] = findViewById(R.id.ButtonBottom);
         imageButtons[1] = findViewById(R.id.buttonTop);
         imageButtons[2] = findViewById(R.id.buttonRight);
@@ -61,17 +63,25 @@ public class SnakeActivity extends AppCompatActivity {
         imageViewBackground = findViewById(R.id.imageViewBackground);
         bitmap = ((BitmapDrawable) imageViewBackground.getDrawable()).getBitmap();
         extraBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
+        snakeHeadBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.snake_head);
         snakeBodyBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.snake_body);
         cherryBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.cherry);
         cherryBitmap = Bitmap.createScaledBitmap(cherryBitmap,onePlateSize,onePlateSize,false);
         snakeBodyBitmap = Bitmap.createScaledBitmap(snakeBodyBitmap,onePlateSize,onePlateSize,false);
+        snakeHeadBitmap = Bitmap.createScaledBitmap(snakeHeadBitmap,onePlateSize,onePlateSize,false);
+        headStateBitmaps[0] = rotateHead(snakeHeadBitmap,90);
+        headStateBitmaps[1] = rotateHead(snakeHeadBitmap,180);
+        headStateBitmaps[2] = rotateHead(snakeHeadBitmap,270);
+        headStateBitmaps[3] = snakeHeadBitmap;
+        snakeHeadBitmap = headStateBitmaps[0];
         canvas = new Canvas(extraBitmap);
         bitmap.setDensity(Bitmap.DENSITY_NONE);
         canvas.drawBitmap(bitmap,0,0,null);
         createPlates();
         createStartSnake();
-        startMainThread();
+        startGameThread();
     }
+
 
     public void gameOver(){
         snakeLoop.setGameRemains(false);
@@ -90,7 +100,7 @@ public class SnakeActivity extends AppCompatActivity {
         imageButtons[3].setClickable(false);
     }
 
-    public void startMainThread(){
+    public void startGameThread(){
         snakeLoop = new SnakeLoop(backSize,plates);
         thread = new Thread(snakeLoop);
         thread.start();
@@ -105,13 +115,16 @@ public class SnakeActivity extends AppCompatActivity {
     }
 
     public void paintField(){
+        textScore = "Your score: "+score;
+        textViewScore.setText(textScore);
         canvas.drawBitmap(bitmap,0,0,null);
         for (int i=0;i<backSize;i++){
             for (int j=0;j<backSize;j++){
-                if(plates[i][j].getExistTime()>0) canvas.drawBitmap(snakeBodyBitmap,i*80,j*80,null);
+                if(plates[i][j].getExistTime()>0) canvas.drawBitmap(snakeBodyBitmap,plates[i][j].getxCoord(),plates[i][j].getyCoord(),null);
                 if (plates[i][j].getIsCherry()) canvas.drawBitmap(cherryBitmap,plates[i][j].getxCoord(),plates[i][j].getyCoord(),null);
             }
         }
+        canvas.drawBitmap(snakeHeadBitmap,plates[currentXCoord][currentYCoord].getxCoord(),plates[currentXCoord][currentYCoord].getyCoord(),null);
         imageViewBackground.setImageBitmap(extraBitmap);
     }
 
@@ -128,20 +141,25 @@ public class SnakeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public Bitmap rotateHead(Bitmap bitmap, float angle){
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+    }
+
     public void clickBtn(View view) {
         String tag =view.getTag().toString();
         switch (tag){
-            case "left":imageButtons[2].setClickable(false); xCoordPlus = -1; yCoordPlus=0; imageButtons[0].setClickable(true); imageButtons[1].setClickable(true); break;
-            case "bottom":imageButtons[1].setClickable(false); xCoordPlus = 0; yCoordPlus=1; imageButtons[2].setClickable(true); imageButtons[3].setClickable(true); break;
-            case "right":imageButtons[3].setClickable(false); xCoordPlus = 1; yCoordPlus = 0; imageButtons[0].setClickable(true); imageButtons[1].setClickable(true); break;
-            case "top":imageButtons[0].setClickable(false); xCoordPlus = 0; yCoordPlus=-1; imageButtons[3].setClickable(true); imageButtons[2].setClickable(true); break;
+            case "left":snakeHeadBitmap =headStateBitmaps[2];  imageButtons[2].setClickable(false); xCoordPlus = -1; yCoordPlus=0; imageButtons[0].setClickable(true); imageButtons[1].setClickable(true); break;
+            case "bottom":snakeHeadBitmap = headStateBitmaps[1]; imageButtons[1].setClickable(false); xCoordPlus = 0; yCoordPlus=1; imageButtons[2].setClickable(true); imageButtons[3].setClickable(true); break;
+            case "right":snakeHeadBitmap = headStateBitmaps[0]; imageButtons[3].setClickable(false); xCoordPlus = 1; yCoordPlus = 0; imageButtons[0].setClickable(true); imageButtons[1].setClickable(true); break;
+            case "top":snakeHeadBitmap = headStateBitmaps[3]; imageButtons[0].setClickable(false); xCoordPlus = 0; yCoordPlus=-1; imageButtons[3].setClickable(true); imageButtons[2].setClickable(true); break;
         }
     }
 
 
     class SnakeLoop implements Runnable{
         private int size;
-        private boolean isGameRemains = true;
         private boolean isCherryNotExist = true;
         private SnakePlate[][] plates;
         private int snakeSize;
@@ -154,6 +172,7 @@ public class SnakeActivity extends AppCompatActivity {
 
         @Override
         public void run() {
+            Log.i("hi","Hello from loop");
             while (isGameRemains) {
                 if (isCherryNotExist) createCherry();
                 currentXCoord = currentXCoord + xCoordPlus;
